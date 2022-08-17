@@ -87,10 +87,15 @@ contract Wallet is IWallet, UpgradeableACL, Paymaster {
     require(getGuardiansCount() > 0, "Wallet: No guardians allowed");
     require(op.isGuardianActionAllowed(), "Wallet: Invalid guardian action");
     require(signatureData.values.length >= getMinGuardiansSignatures(), "Wallet: Insufficient guardians");
+    address lastGuardian = address(0);
+    address currentGuardian;
 
     for (uint256 i = 0; i < signatureData.values.length; i++) {
       SignatureValue memory value = signatureData.values[i];
       _validateGuardianSignature(value.signer, requestId.toEthSignedMessageHash(), value.signature);
+      currentGuardian = value.signer;
+      require(currentGuardian > lastGuardian, "Invalid guardian address provided");
+      lastGuardian = currentGuardian;
     }
   }
 }
